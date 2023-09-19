@@ -9,6 +9,13 @@ if [[ ! -f /config/qBittorrent/qBittorrent.conf ]]; then
     cp /defaults/qBittorrent.conf /config/qBittorrent/qBittorrent.conf
 fi
 
+# copy openbox config
+if [[ ! -d ~/openbox ]]; then
+    mkdir -p ~/openbox
+    cp /defaults/autostart ~/openbox/autostart
+    cp /defaults/menu.xml ~/openbox/menu.xml
+fi
+
 # chown download directory if currently not set to abc
 if [[ -d /downloads ]]; then
     if [[ "$(stat -c '%U' /downloads)" != "abc" ]]; then
