@@ -2,7 +2,7 @@
 
 FROM ghcr.io/linuxserver/unrar:latest as unrar
 
-FROM ghcr.io/linuxserver/baseimage-alpine:edge
+FROM snippetsbysam/docker-baseimage-kasmvnc-edge
 
 # set version label
 ARG BUILD_DATE
@@ -10,10 +10,11 @@ ARG VERSION
 ARG QBITTORRENT_VERSION
 ARG QBT_VERSION
 LABEL build_version="Linuxserver.io version:- ${VERSION} Build-date:- ${BUILD_DATE}"
-LABEL maintainer="thespad"
+LABEL maintainer="snippetsbysam"
 
 # environment settings
 ENV HOME="/config" \
+TITLE="qBittorrent" \
 XDG_CONFIG_HOME="/config" \
 XDG_DATA_HOME="/config"
 
@@ -33,10 +34,10 @@ RUN \
     qt6-qtbase-sqlite && \
   if [ -z ${QBITTORRENT_VERSION+x} ]; then \
     QBITTORRENT_VERSION=$(curl -sL "http://dl-cdn.alpinelinux.org/alpine/edge/community/x86_64/APKINDEX.tar.gz" | tar -xz -C /tmp \
-    && awk '/^P:qbittorrent-nox$/,/V:/' /tmp/APKINDEX | sed -n 2p | sed 's/^V://'); \
+    && awk '/^P:qbittorrent$/,/V:/' /tmp/APKINDEX | sed -n 2p | sed 's/^V://'); \
   fi && \
   apk add -U --upgrade --no-cache \
-    qbittorrent-nox==${QBITTORRENT_VERSION} && \
+    qbittorrent==${QBITTORRENT_VERSION} && \
   echo "***** install qbitorrent-cli ****" && \
   mkdir /qbt && \
   QBT_VERSION=$(curl -sL "https://api.github.com/repos/fedarovich/qbittorrent-cli/releases" \
@@ -47,6 +48,8 @@ RUN \
   tar xf \
     /tmp/qbt.tar.gz -C \
     /qbt && \
+  echo "**** openbox tweaks ****" && \
+  sed -i 's|</applications>|  <application title="qBittorrent*" type="normal">\n    <maximized>yes</maximized>\n  </application>\n</applications>|' /etc/xdg/openbox/rc.xml && \
   echo "**** cleanup ****" && \
   apk del --purge \
     build-dependencies && \
