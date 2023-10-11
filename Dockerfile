@@ -1,5 +1,7 @@
 # syntax=docker/dockerfile:1
 
+FROM ghcr.io/linuxserver/unrar:latest as unrar
+
 FROM snippetsbysam/docker-baseimage-kasmvnc-edge
 
 # set version label
@@ -11,7 +13,6 @@ LABEL build_version="Linuxserver.io version:- ${VERSION} Build-date:- ${BUILD_DA
 LABEL maintainer="snippetsbysam"
 
 # environment settings
-ARG UNRAR_VERSION=6.2.10
 ENV HOME="/config" \
 TITLE="qBittorrent" \
 XDG_CONFIG_HOME="/config" \
@@ -31,17 +32,6 @@ RUN \
     p7zip \
     python3 \
     qt6-qtbase-sqlite && \
-  echo "**** install unrar from source ****" && \
-  mkdir /tmp/unrar && \
-  curl -o \
-    /tmp/unrar.tar.gz -L \
-    "https://www.rarlab.com/rar/unrarsrc-${UNRAR_VERSION}.tar.gz" && \
-  tar xf \
-    /tmp/unrar.tar.gz -C \
-    /tmp/unrar --strip-components=1 && \
-  cd /tmp/unrar && \
-  make && \
-  install -v -m755 unrar /usr/bin && \
   if [ -z ${QBITTORRENT_VERSION+x} ]; then \
     QBITTORRENT_VERSION=$(curl -sL "http://dl-cdn.alpinelinux.org/alpine/edge/community/x86_64/APKINDEX.tar.gz" | tar -xz -C /tmp \
     && awk '/^P:qbittorrent$/,/V:/' /tmp/APKINDEX | sed -n 2p | sed 's/^V://'); \
@@ -69,6 +59,9 @@ RUN \
 
 # add local files
 COPY root/ /
+
+# add unrar
+COPY --from=unrar /usr/bin/unrar-alpine /usr/bin/unrar
 
 # ports and volumes
 EXPOSE 8080 6881 6881/udp
