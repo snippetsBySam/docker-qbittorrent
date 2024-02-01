@@ -20,15 +20,9 @@ XDG_DATA_HOME="/config"
 
 # install runtime packages and qbitorrent-cli
 RUN \
-  echo "**** install build packages ****" && \
-  apk add --no-cache --virtual=build-dependencies \
-    build-base && \
   echo "**** install packages ****" && \
-  apk add --no-cache --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing \
+  apk add --no-cache \
     icu-libs \
-    libstdc++ \
-    openssl \
-    openssl1.1-compat \
     p7zip \
     python3 \
     qt6-qtbase-sqlite && \
@@ -53,8 +47,6 @@ RUN \
   echo "**** openbox tweaks ****" && \
   sed -i 's|</applications>|  <application title="qBittorrent*" type="normal">\n    <maximized>yes</maximized>\n  </application>\n</applications>|' /etc/xdg/openbox/rc.xml && \
   echo "**** cleanup ****" && \
-  apk del --purge \
-    build-dependencies && \
   rm -rf \
     /root/.cache \
     /tmp/*
