@@ -2,7 +2,7 @@
 
 FROM ghcr.io/linuxserver/unrar:latest AS unrar
 
-FROM snippetsbysam/docker-baseimage-kasmvnc-edge
+FROM ghcr.io/linuxserver/baseimage-kasmvnc:alpine321
 
 # set version label
 ARG BUILD_DATE
