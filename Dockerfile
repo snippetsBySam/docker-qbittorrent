@@ -2,7 +2,7 @@
 
 FROM ghcr.io/linuxserver/unrar:latest AS unrar
 
-FROM ghcr.io/linuxserver/baseimage-selkies:alpine323
+FROM ghcr.io/linuxserver/baseimage-selkies:alpine324
 
 # set version label
 ARG BUILD_DATE
@@ -25,10 +25,10 @@ RUN \
     grep \
     icu-libs \
     p7zip \
-    python3 \
-    qt6-qtbase-sqlite && \
+    python3 && \
+  echo "**** install qbittorrent ****" && \
   if [ -z ${QBITTORRENT_VERSION+x} ]; then \
-    QBITTORRENT_VERSION=$(curl -sL "http://dl-cdn.alpinelinux.org/alpine/v3.23/community/x86_64/APKINDEX.tar.gz" | tar -xz -C /tmp \
+    QBITTORRENT_VERSION=$(curl -sL "http://dl-cdn.alpinelinux.org/alpine/v3.24/community/x86_64/APKINDEX.tar.gz" | tar -xz -C /tmp \
     && awk '/^P:qbittorrent$/,/V:/' /tmp/APKINDEX | sed -n 2p | sed 's/^V://'); \
   fi && \
   apk add -U --upgrade --no-cache \
