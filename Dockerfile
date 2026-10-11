@@ -7,8 +7,8 @@ FROM ghcr.io/linuxserver/baseimage-selkies:alpine324
 # set version label
 ARG BUILD_DATE
 ARG VERSION
-ARG QBITTORRENT_VERSION
 ARG QBT_CLI_VERSION
+
 LABEL build_version="Linuxserver.io version:- ${VERSION} Build-date:- ${BUILD_DATE}"
 LABEL maintainer="snippetsbysam"
 
@@ -20,24 +20,24 @@ XDG_DATA_HOME="/config"
 
 # install runtime packages and qbitorrent-cli
 RUN \
+  echo "**** add alpine edge repos ****" && \
+  echo "@edge https://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories && \
+  echo "@edge https://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories && \
   echo "**** install packages ****" && \
   apk add --no-cache \
     grep \
     icu-libs \
+    jq \
     p7zip \
     python3 && \
-  echo "**** install qbittorrent ****" && \
-  if [ -z ${QBITTORRENT_VERSION+x} ]; then \
-    QBITTORRENT_VERSION=$(curl -sL "http://dl-cdn.alpinelinux.org/alpine/v3.24/community/x86_64/APKINDEX.tar.gz" | tar -xz -C /tmp \
-    && awk '/^P:qbittorrent$/,/V:/' /tmp/APKINDEX | sed -n 2p | sed 's/^V://'); \
-  fi && \
+  echo "**** install latest qbittorrent from alpine edge ****" && \
   apk add -U --upgrade --no-cache \
-    qbittorrent==${QBITTORRENT_VERSION} && \
+    qbittorrent@edge && \
   echo "***** install qbitorrent-cli ****" && \
   mkdir /qbt && \
-  if [ -z ${QBT_CLI_VERSION+x} ]; then \
+  if [ -z "${QBT_CLI_VERSION:-}" ]; then \
     QBT_CLI_VERSION=$(curl -sL "https://api.github.com/repos/fedarovich/qbittorrent-cli/releases/latest" \
-    | jq -r '. | .tag_name'); \
+    | jq -r '.tag_name'); \
   fi && \
   curl -o \
     /tmp/qbt.tar.gz -L \
@@ -59,7 +59,7 @@ COPY root/ /
 # add unrar
 COPY --from=unrar /usr/bin/unrar-alpine /usr/bin/unrar
 
-# ports and volumes
+# ports and volumes
 EXPOSE 8080 6881 6881/udp
 
 VOLUME /config
