@@ -95,7 +95,7 @@ pipeline {
           env.CODE_URL = 'https://github.com/' + env.LS_USER + '/' + env.LS_REPO + '/commit/' + env.GIT_COMMIT
           env.DOCKERHUB_LINK = 'https://hub.docker.com/r/' + env.DOCKERHUB_IMAGE + '/tags/'
           env.PULL_REQUEST = env.CHANGE_ID
-          env.TEMPLATED_FILES = 'Jenkinsfile README.md LICENSE .editorconfig ./.github/CONTRIBUTING.md ./.github/FUNDING.yml ./.github/ISSUE_TEMPLATE/config.yml ./.github/ISSUE_TEMPLATE/issue.bug.yml ./.github/ISSUE_TEMPLATE/issue.feature.yml ./.github/PULL_REQUEST_TEMPLATE.md ./.github/workflows/external_trigger_scheduler.yml ./.github/workflows/greetings.yml ./.github/workflows/package_trigger_scheduler.yml ./.github/workflows/call_issue_pr_tracker.yml ./.github/workflows/call_issues_cron.yml ./.github/workflows/permissions.yml ./.github/workflows/external_trigger.yml'
+          env.TEMPLATED_FILES = 'Jenkinsfile README.md LICENSE .editorconfig AGENTS.md ./.github/CONTRIBUTING.md ./.github/FUNDING.yml ./.github/ISSUE_TEMPLATE/config.yml ./.github/ISSUE_TEMPLATE/issue.bug.yml ./.github/ISSUE_TEMPLATE/issue.feature.yml ./.github/PULL_REQUEST_TEMPLATE.md ./.github/workflows/external_trigger_scheduler.yml ./.github/workflows/greetings.yml ./.github/workflows/package_trigger_scheduler.yml ./.github/workflows/call_issue_pr_tracker.yml ./.github/workflows/call_issues_cron.yml ./.github/workflows/permissions.yml ./.github/workflows/external_trigger.yml'
           if ( env.SYFT_IMAGE_TAG == null ) {
             env.SYFT_IMAGE_TAG = 'latest'
           }
@@ -629,7 +629,7 @@ pipeline {
                         pids[$!]="$i"
                       done
                       for p in "${!pids[@]}"; do
-                        wait "$p" || { [[ "${pids[$p]}" != *"quay.io"* ]] && exit 1; }
+                        wait "$p" || { [[ "${pids[$p]}" != *"quay.io"* && "${pids[$p]}" != *"registry.gitlab.com"* ]] && exit 1; }
                       done
                     fi
                 '''
@@ -698,7 +698,7 @@ pipeline {
                             pids[$!]="$i"
                           done
                           for p in "${!pids[@]}"; do
-                            wait "$p" || { [[ "${pids[$p]}" != *"quay.io"* ]] && exit 1; }
+                            wait "$p" || { [[ "${pids[$p]}" != *"quay.io"* && "${pids[$p]}" != *"registry.gitlab.com"* ]] && exit 1; }
                           done
                         fi
                     '''
@@ -759,7 +759,7 @@ pipeline {
                             pids[$!]="$i"
                           done
                           for p in "${!pids[@]}"; do
-                            wait "$p" || { [[ "${pids[$p]}" != *"quay.io"* ]] && exit 1; }
+                            wait "$p" || { [[ "${pids[$p]}" != *"quay.io"* && "${pids[$p]}" != *"registry.gitlab.com"* ]] && exit 1; }
                           done
                         fi
                     '''
@@ -941,10 +941,10 @@ pipeline {
                       fi
                   done
                   docker buildx imagetools create --prefer-index=false -t ${PUSHIMAGE}:${META_TAG} -t ${PUSHIMAGE}:latest -t ${PUSHIMAGE}:${EXT_RELEASE_TAG} ${CACHEIMAGE}:amd64-${COMMIT_SHA}-${BUILD_NUMBER} || \
-                    { if [[ "${PUSHIMAGE}" != "${QUAYIMAGE}" ]]; then exit 1; fi; }
+                    { if [[ "${PUSHIMAGE}" != "${QUAYIMAGE}" && "${PUSHIMAGE}" != "${GITLABIMAGE}" ]]; then exit 1; fi; }
                   if [ -n "${SEMVER}" ]; then
                     docker buildx imagetools create --prefer-index=false -t ${PUSHIMAGE}:${SEMVER} ${CACHEIMAGE}:amd64-${COMMIT_SHA}-${BUILD_NUMBER} || \
-                      { if [[ "${PUSHIMAGE}" != "${QUAYIMAGE}" ]]; then exit 1; fi; }
+                      { if [[ "${PUSHIMAGE}" != "${QUAYIMAGE}" && "${PUSHIMAGE}" != "${GITLABIMAGE}" ]]; then exit 1; fi; }
                   fi
                 done
               '''
@@ -977,26 +977,26 @@ pipeline {
                       fi
                   done
                   docker buildx imagetools create --prefer-index=false -t ${MANIFESTIMAGE}:amd64-${META_TAG} -t ${MANIFESTIMAGE}:amd64-latest -t ${MANIFESTIMAGE}:amd64-${EXT_RELEASE_TAG} ${CACHEIMAGE}:amd64-${COMMIT_SHA}-${BUILD_NUMBER} || \
-                    { if [[ "${MANIFESTIMAGE}" != "${QUAYIMAGE}" ]]; then exit 1; fi; }
+                    { if [[ "${MANIFESTIMAGE}" != "${QUAYIMAGE}" && "${MANIFESTIMAGE}" != "${GITLABIMAGE}" ]]; then exit 1; fi; }
                   docker buildx imagetools create --prefer-index=false -t ${MANIFESTIMAGE}:arm64v8-${META_TAG} -t ${MANIFESTIMAGE}:arm64v8-latest -t ${MANIFESTIMAGE}:arm64v8-${EXT_RELEASE_TAG} ${CACHEIMAGE}:arm64v8-${COMMIT_SHA}-${BUILD_NUMBER} || \
-                    { if [[ "${MANIFESTIMAGE}" != "${QUAYIMAGE}" ]]; then exit 1; fi; }
+                    { if [[ "${MANIFESTIMAGE}" != "${QUAYIMAGE}" && "${MANIFESTIMAGE}" != "${GITLABIMAGE}" ]]; then exit 1; fi; }
                   if [ -n "${SEMVER}" ]; then
                     docker buildx imagetools create --prefer-index=false -t ${MANIFESTIMAGE}:amd64-${SEMVER} ${CACHEIMAGE}:amd64-${COMMIT_SHA}-${BUILD_NUMBER} || \
-                      { if [[ "${MANIFESTIMAGE}" != "${QUAYIMAGE}" ]]; then exit 1; fi; }
+                      { if [[ "${MANIFESTIMAGE}" != "${QUAYIMAGE}" && "${MANIFESTIMAGE}" != "${GITLABIMAGE}" ]]; then exit 1; fi; }
                     docker buildx imagetools create --prefer-index=false -t ${MANIFESTIMAGE}:arm64v8-${SEMVER} ${CACHEIMAGE}:arm64v8-${COMMIT_SHA}-${BUILD_NUMBER} || \
-                      { if [[ "${MANIFESTIMAGE}" != "${QUAYIMAGE}" ]]; then exit 1; fi; }
+                      { if [[ "${MANIFESTIMAGE}" != "${QUAYIMAGE}" && "${MANIFESTIMAGE}" != "${GITLABIMAGE}" ]]; then exit 1; fi; }
                   fi
                 done
                 for MANIFESTIMAGE in "${IMAGE}" "${GITLABIMAGE}" "${GITHUBIMAGE}" "${QUAYIMAGE}"; do
                   docker buildx imagetools create -t ${MANIFESTIMAGE}:latest ${MANIFESTIMAGE}:amd64-latest ${MANIFESTIMAGE}:arm64v8-latest || \
-                    { if [[ "${MANIFESTIMAGE}" != "${QUAYIMAGE}" ]]; then exit 1; fi; }
+                    { if [[ "${MANIFESTIMAGE}" != "${QUAYIMAGE}" && "${MANIFESTIMAGE}" != "${GITLABIMAGE}" ]]; then exit 1; fi; }
                   docker buildx imagetools create -t ${MANIFESTIMAGE}:${META_TAG} ${MANIFESTIMAGE}:amd64-${META_TAG} ${MANIFESTIMAGE}:arm64v8-${META_TAG} || \
-                    { if [[ "${MANIFESTIMAGE}" != "${QUAYIMAGE}" ]]; then exit 1; fi; }
+                    { if [[ "${MANIFESTIMAGE}" != "${QUAYIMAGE}" && "${MANIFESTIMAGE}" != "${GITLABIMAGE}" ]]; then exit 1; fi; }
                   docker buildx imagetools create -t ${MANIFESTIMAGE}:${EXT_RELEASE_TAG} ${MANIFESTIMAGE}:amd64-${EXT_RELEASE_TAG} ${MANIFESTIMAGE}:arm64v8-${EXT_RELEASE_TAG} || \
-                    { if [[ "${MANIFESTIMAGE}" != "${QUAYIMAGE}" ]]; then exit 1; fi; }
+                    { if [[ "${MANIFESTIMAGE}" != "${QUAYIMAGE}" && "${MANIFESTIMAGE}" != "${GITLABIMAGE}" ]]; then exit 1; fi; }
                   if [ -n "${SEMVER}" ]; then
                     docker buildx imagetools create -t ${MANIFESTIMAGE}:${SEMVER} ${MANIFESTIMAGE}:amd64-${SEMVER} ${MANIFESTIMAGE}:arm64v8-${SEMVER} || \
-                      { if [[ "${MANIFESTIMAGE}" != "${QUAYIMAGE}" ]]; then exit 1; fi; }
+                      { if [[ "${MANIFESTIMAGE}" != "${QUAYIMAGE}" && "${MANIFESTIMAGE}" != "${GITLABIMAGE}" ]]; then exit 1; fi; }
                   fi
                 done
               '''
